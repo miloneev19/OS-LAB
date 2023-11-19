@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+int main() {
+
+    int fd;
+    char *myfifo = "myfifo";
+    mkfifo(myfifo, 0666);
+
+    char arr1[80], arr2[80], buffer[100];
+
+    while (1) {
+        int i = 0, wordCount = 0, lineCount = 0, charCount = 0;
+
+        fd = open(myfifo, O_WRONLY);
+        printf("Enter data : ");
+        fgets(arr2, 80, stdin);
+        write(fd, arr2, strlen(arr2) + 1);
+        close(fd);
+
+        fd = open(myfifo, O_RDONLY);
+        read(fd, arr1, sizeof(arr1));
+        close(fd);
+
+        while (i < strlen(arr1)) {
+            if (arr1[i] == ' ') {
+                wordCount++;
+            } else if (arr1[i] == '\n') {
+                wordCount++;
+                lineCount++;
+            } else {
+                charCount++;
+            }
+            i++;
+        }
+
+        FILE *countFile = fopen("count.txt", "w");
+        if (countFile != NULL) {
+            fprintf(countFile, "Word Count: %d\n", wordCount);
+            fprintf(countFile, "Line Count: %d\n", lineCount);
+            fprintf(countFile, "Character Count: %d\n", charCount);
+            fclose(countFile);
+
+            // Open "count.txt" for reading
+            FILE *countFileRead = fopen("count.txt", "r");
+            if (countFileRead != NULL) {
+                fread(buffer, sizeof(buffer), 1, countFileRead);
+                fclose(countFileRead);
+
+                // Now, buffer contains the contents of "count.txt"
+                printf("Contents of count.txt:\n%s\n", buffer);
+            } else {
+                perror("Unable to open count.txt for reading");
+            }
+        } else {
+            perror("Unable to open count.txt for writing");
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+
+-------------------OUTPUT-----------------------------------
+krishna@Krishna:~/Documents$ gcc Fifo1.c
+krishna@Krishna:~/Documents$ ./a.out
+Enter data : Krishna
+Contents of count.txt:
+Word Count: 1
+Line Count: 1
+Character Count: 7
+
+Enter data : ^C
+krishna@Krishna:~/Documents$ 

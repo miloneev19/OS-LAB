@@ -1,0 +1,96 @@
+#include<stdio.h>
+#include<string.h>
+#include<fcntl.h>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<unistd.h>
+
+
+int main() {
+
+    int fd1 ;
+
+    char * myfifo = "myfifo" ;
+
+    mkfifo(myfifo,0666) ;
+
+    char arr1[80] , arr2[80] ,buff[80];
+
+    while(1) {
+
+        int i = 0 , wordCount = 0 , lineCount = 0 , charCount = 0 ;
+
+        fd1 = open(myfifo,O_RDONLY);
+
+        read(fd1,arr1,80);                 // Here input of user1 will get read.
+
+        printf("User 1: %s \n",arr1);     // Data written by user1 will get printed.
+
+        close(fd1);
+
+        while(i < strlen(arr1)) {              // Calculate Number of characters , lines and words.
+
+              if(arr1[i] == ' ')
+              {
+              wordCount++ ;
+              charCount++ ;
+              }
+              else if(arr1[i] == '\n')
+              {
+              wordCount++ ;
+              lineCount++ ;
+              }
+              else
+              {
+              charCount++ ;
+              }
+
+              i++;
+        }
+    
+    
+      FILE *countFile = fopen("count.txt", "w");                 // This will create one text file in which we are storing all the counts.
+              if (countFile != NULL) {
+                  fprintf(countFile, "Word Count: %d\n", wordCount);
+                  fprintf(countFile, "Line Count: %d\n", lineCount);
+                  fprintf(countFile, "Character Count: %d\n", charCount);
+                  fclose(countFile);
+              } else {
+                  perror("Unable to open count.txt for writing");
+
+              }
+      fd1 = open(myfifo,O_WRONLY) ;           // Open myfifo for write purpose.
+
+      write(fd1,arr1,strlen(arr1)+1);         // We are transferring the contents of count.txt to first process through fd1.
+    
+      close(fd1);
+      
+      
+
+    }
+
+
+return 0 ;
+}
+
+
+
+
+------------------OUTPUT---------------
+
+
+krishna@Krishna:~/Documents$ gcc Fifo2.c -o b.out
+krishna@Krishna:~/Documents$ ./b.out
+User 1: Krishna
+ 
+User 1: Krishna
+ 
+User 1: Krishna
+ 
+User 1: Krishna
+ 
+User 1: Krishna
+ 
+^C
+krishna@Krishna:~/Documents$ 
+
