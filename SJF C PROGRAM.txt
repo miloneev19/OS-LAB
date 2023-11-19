@@ -1,0 +1,265 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+int ready_index=0;
+
+struct presjf
+{
+	int id;
+	int at;
+	int st;
+	int waiting;
+	int tat;
+};
+
+struct ready
+{
+	int id;
+	int st;
+};
+
+void get_data(struct presjf s[], int n)
+{
+	for(int i=0; i<n; i++)
+	{
+		printf("\nEnter Process id : ");	
+		scanf("%d",&s[i].id);
+		
+		printf("\nEnter process arrival time : ");
+		scanf("%d",&s[i].at);
+		
+		printf("\nEnter process service time : ");
+		scanf("%d",&s[i].st);
+	}
+}
+
+void sort_ready(struct ready r[], int ready_index)
+{
+	struct ready temp;
+	
+	for(int i = 0; i < ready_index-1; i++)
+	{
+		for(int j = 0; j < ready_index-1 - i; j++)
+		{
+			if(r[j].st > r[j+1].st)
+			{
+				temp = r[j];
+				r[j] = r[j+1];
+				r[j+1] = temp;
+			}
+		}
+	}
+}
+
+void sort_presjf(struct presjf s[], int n)
+{
+	struct presjf temp;
+	
+	for(int i = 0; i < n-1; i++)
+	{
+		for(int j = 0; j < n-1-i; j++)
+		{
+			if(s[j].at > s[j+1].at)
+			{
+				temp = s[j];
+				s[j]= s[j+1];
+				s[j+1] = temp;
+			}
+		}
+	}
+}
+
+void avg(struct presjf s[], int n)
+{
+	float wt_time=0, tat_time=0;
+	for(int i=0; i<n; i++)
+	{
+		wt_time = wt_time + s[i].waiting;
+		tat_time = tat_time + s[i].tat;
+	}
+	
+	wt_time= wt_time/n;
+	tat_time= tat_time/n;
+	
+	printf("\nAverage Waiting time : %f",wt_time);
+	printf("\nAverage Turn around time : %f",tat_time);
+}
+
+void premp_sjf(struct presjf s[], struct ready r[], int n)
+{
+	int complete_process =0;
+	int total_time=0;
+	int i=0;
+	int j=0;
+	
+	
+	while(complete_process < n)
+	{
+		if(i<n && (total_time >= s[i].at))
+		{
+			{
+				r[ready_index].id = s[i].id;
+				r[ready_index].st = s[i].st;
+				
+				ready_index++;
+				i++;
+			}
+		}
+		sort_ready(r,ready_index);
+		
+		if(i < n)
+		{
+			while(total_time < s[i].at)
+			{
+				r[0].st--;
+				
+				total_time++;
+				if(r[0].st ==0)
+				{
+					printf("\n%d",r[0].id);
+					printf("\n");
+					printf("\n is completed its execution at:  %d",total_time);
+					for(int x = 0; x < n; x++)
+					{
+						if(r[0].id == s[x].id)
+						{
+							s[x].waiting = total_time - s[x].at - s[x].st;
+							s[x].tat = s[x].waiting + s[x].st;
+						}
+					}
+					complete_process++;
+					for(j=0; j<ready_index; j++)
+					{
+						r[j]=r[j+1];
+					}
+					ready_index--;
+					break;
+				}
+			}
+		}
+		else
+		{
+			while(r[0].st != 0)
+			{
+				r[0].st--;
+				total_time++;
+				if(r[0].st == 0)
+				{
+					printf("\n%d",r[0].id);
+					printf("\n");
+					printf(" is completed its execution at :  %d",total_time);
+					for(int x = 0; x < n; x++)
+					{
+						if(r[0].id == s[x].id)
+						{
+							s[x].waiting = total_time - s[x].at - s[x].st ;
+							s[x].tat = s[x].waiting + s[x].st;
+						}
+					}
+					complete_process++;
+					for(j=0; j<ready_index; j++)
+					{
+						r[j]=r[j+1];
+					}
+					ready_index--;
+					break;
+				}
+			}
+		}
+	}
+}
+
+void main()
+{
+	int n;
+	printf("\nEnter total number of process : ");
+	scanf("%d",&n);
+	
+	struct presjf s[n];
+	struct ready r[n];
+	
+	get_data(s,n);
+	printf("\n\nId\tArrival Time\tService Time\n");
+	for(int k=0; k<n; k++)
+	{
+		printf("%d",s[k].id);
+		printf("\t%d",s[k].at);
+		printf("\t%d",s[k].st);
+		printf("\n");
+	}
+	
+	sort_presjf(s,n);
+	premp_sjf(s,r,n);
+	printf("\n\nId\tArrival T\tService T\tWaiting T\tTAT\n");
+	for(int k = 0; k < n; k++)
+	{
+		printf("%d",s[k].id);
+		printf("\t%d",s[k].at);
+		printf("\t\t%d",s[k].st);
+		printf("\t\t%d",s[k].waiting);
+		printf("\t\t%d",s[k].tat);
+		printf("\n");
+	}
+	avg(s,n);
+}
+
+/*OUTPUT :
+ubuntu@omkar:~$ gcc sjf.c
+ubuntu@omkar:~$ ./a.out 
+
+Enter total number of process : 5
+
+Enter Process id : 1
+
+Enter process arrival time : 0
+
+Enter process service time : 3
+
+Enter Process id : 2
+
+Enter process arrival time : 2
+
+Enter process service time : 6
+
+Enter Process id : 3
+
+Enter process arrival time : 4
+
+Enter process service time : 4
+
+Enter Process id : 4
+
+Enter process arrival time : 6
+
+Enter process service time : 5
+
+Enter Process id : 5
+
+Enter process arrival time : 8
+
+Enter process service time : 2
+
+
+Id	Arrival Time	Service Time
+1	0		3
+2	2		6
+3	4		4
+4	6		5
+5	8		2
+
+1 is completed its execution at:  3
+3 is completed its execution at:  8
+5 is completed its execution at :  10
+2 is completed its execution at :  15
+4 is completed its execution at :  20
+
+Id	Arrival T	Service T	Waiting T	TAT
+1	0		3		0		3
+2	2		6		7		13
+3	4		4		0		4
+4	6		5		9		14
+5	8		2		0		2
+
+Average Waiting time : 3.200000
+Average Turn around time : 7.200000
+*/
